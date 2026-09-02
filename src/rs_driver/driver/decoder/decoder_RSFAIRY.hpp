@@ -457,6 +457,24 @@ inline bool DecoderRSFAIRY<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pac
       // Special user ring handling for 48-channel LiDAR.
       if (user_ring >= 48 && lidarModel_ == RSFAIRYModel::RSFAIRY_CHANNEL_48)
         user_ring -= 48;
+
+      // ====================== 新增角度换算 ======================
+      // angle_horiz_final / angle_vert 单位：0.01 degree
+      float azimuth_deg = static_cast<float>(angle_horiz_final) * 0.01f;
+      float elevation_deg = static_cast<float>(angle_vert) * 0.01f;
+      float azimuth_rad = azimuth_deg * static_cast<float>(M_PI) / 180.0f;
+      float elevation_rad = elevation_deg * static_cast<float>(M_PI) / 180.0f;
+
+      // ====================== 计算帧内相对纳秒（Autoware标准） ======================
+      // chan_ts：绝对时间(秒)；first_point_ts_：本帧第一个点绝对时间
+      uint64_t relative_ns = static_cast<uint64_t>((chan_ts - this->first_point_ts_) * 1e9);
+      // 防止负数（帧边界抖动）
+      if (relative_ns > UINT32_MAX) relative_ns = UINT32_MAX;
+      uint32_t point_rel_ts_ns = static_cast<uint32_t>(relative_ns);
+
+      // RS-Fairy 单回波雷达，return_type固定0（First return）
+      const uint8_t return_type = 0;
+
       if (this->distance_section_.in(distance) && this->scan_section_.in(angle_horiz_final))
       {
         float x = distance * COS(angle_vert) * COS(angle_horiz_final) + this->lidar_lens_center_Rxy_* COS(angle_horiz);
@@ -468,9 +486,20 @@ inline bool DecoderRSFAIRY<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pac
         setY(point, y);
         setZ(point, z);
         setIntensity(point, channel.intensity);
+
+        // ===== Autoware PointXYZIRCAEDT 新增字段赋值 =====
+        setReturnType(point, return_type);
+        setChannel(point, user_ring);
+        setAzimuth(point, azimuth_rad);
+        setElevation(point, elevation_rad);
+        setDistance(point, distance);
+        setTimeStamp(point, point_rel_ts_ns);
+
+        // 原生字段（模板兼容，非XYZIRCAEDT点自动空调用）
         setTimestamp(point, chan_ts);
         setRing(point, user_ring);
         setFeature(point, feature);
+
         this->point_cloud_->points.emplace_back(point);
       }
       else if (!this->param_.dense_points)
@@ -480,9 +509,19 @@ inline bool DecoderRSFAIRY<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pac
         setY(point, NAN);
         setZ(point, NAN);
         setIntensity(point, 0);
+
+        // ===== Autoware空点填充 =====
+        setReturnType(point, return_type);
+        setChannel(point, user_ring);
+        setAzimuth(point, 0.0f);
+        setElevation(point, 0.0f);
+        setDistance(point, 0.0f);
+        setTimeStamp(point, point_rel_ts_ns);
+
         setTimestamp(point, chan_ts);
         setRing(point, user_ring);
         setFeature(point, feature);
+
         this->point_cloud_->points.emplace_back(point);
       }
 

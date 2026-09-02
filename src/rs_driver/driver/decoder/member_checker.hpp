@@ -52,6 +52,13 @@ DEFINE_MEMBER_CHECKER(ring)
 DEFINE_MEMBER_CHECKER(timestamp)
 DEFINE_MEMBER_CHECKER(feature)
 
+DEFINE_MEMBER_CHECKER(return_type)
+DEFINE_MEMBER_CHECKER(channel)
+DEFINE_MEMBER_CHECKER(azimuth)
+DEFINE_MEMBER_CHECKER(elevation)
+DEFINE_MEMBER_CHECKER(distance)
+DEFINE_MEMBER_CHECKER(time_stamp)
+
 #define RS_HAS_MEMBER(C, member) has_##member<C>::value
 
 template <typename T_Point>
@@ -137,3 +144,68 @@ inline typename std::enable_if<RS_HAS_MEMBER(T_Point, feature)>::type setFeature
   point.feature = value;
 }
 
+// return_type uint8_t
+template <typename T_Point>
+inline typename std::enable_if<!RS_HAS_MEMBER(T_Point, return_type)>::type setReturnType(T_Point& point, const uint8_t& value)
+{
+}
+template <typename T_Point>
+inline typename std::enable_if<RS_HAS_MEMBER(T_Point, return_type)>::type setReturnType(T_Point& point, const uint8_t& value)
+{
+  point.return_type = value;
+}
+
+// channel uint16_t
+template <typename T_Point>
+inline typename std::enable_if<!RS_HAS_MEMBER(T_Point, channel)>::type setChannel(T_Point& point, const uint16_t& value)
+{
+}
+template <typename T_Point>
+inline typename std::enable_if<RS_HAS_MEMBER(T_Point, channel)>::type setChannel(T_Point& point, const uint16_t& value)
+{
+  point.channel = value;
+}
+
+// azimuth float
+template <typename T_Point>
+inline typename std::enable_if<!RS_HAS_MEMBER(T_Point, azimuth)>::type setAzimuth(T_Point& point, const float& value)
+{
+}
+template <typename T_Point>
+inline typename std::enable_if<RS_HAS_MEMBER(T_Point, azimuth)>::type setAzimuth(T_Point& point, const float& value)
+{
+  point.azimuth = value;
+}
+
+// elevation float
+template <typename T_Point>
+inline typename std::enable_if<!RS_HAS_MEMBER(T_Point, elevation)>::type setElevation(T_Point& point, const float& value)
+{
+}
+template <typename T_Point>
+inline typename std::enable_if<RS_HAS_MEMBER(T_Point, elevation)>::type setElevation(T_Point& point, const float& value)
+{
+  point.elevation = value;
+}
+
+// distance float
+template <typename T_Point>
+inline typename std::enable_if<!RS_HAS_MEMBER(T_Point, distance)>::type setDistance(T_Point& point, const float& value)
+{
+}
+template <typename T_Point>
+inline typename std::enable_if<RS_HAS_MEMBER(T_Point, distance)>::type setDistance(T_Point& point, const float& value)
+{
+  point.distance = value;
+}
+
+// time_stamp uint32_t 帧内相对纳秒（注意名字带下划线，区分原生timestamp）
+template <typename T_Point>
+inline typename std::enable_if<!RS_HAS_MEMBER(T_Point, time_stamp)>::type setTimeStamp(T_Point& point, const uint32_t& value)
+{
+}
+template <typename T_Point>
+inline typename std::enable_if<RS_HAS_MEMBER(T_Point, time_stamp)>::type setTimeStamp(T_Point& point, const uint32_t& value)
+{
+  point.time_stamp = value;
+}

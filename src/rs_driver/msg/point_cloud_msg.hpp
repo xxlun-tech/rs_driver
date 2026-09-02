@@ -61,6 +61,20 @@ struct PointXYZIRTF : public PointXYZIRT
 };
 #pragma pack(pop)
 
+struct alignas(16) PointXYZIRCAEDT
+{
+  float x;
+  float y;
+  float z;
+  uint8_t intensity;
+  uint8_t return_type;
+  uint16_t channel;
+  float azimuth;
+  float elevation;
+  float distance;
+  uint32_t time_stamp;
+};
+
 template <typename T_Point>
 class PointCloudT
 {
